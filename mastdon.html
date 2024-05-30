@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>Mastodon</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jkjoy/memos/css/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jkjoy/memos@0.5/css/uno.css">
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />    
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link rel="stylesheet" href="https://cdn.imsun.org/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css" />
+</head>
+<body>
+    <div class="bg-[#f0f0f0]">
+        <div> 
+            <div class="bg-white mx-auto main-container">
+                <header class="top">
+                    <div class="fixed top-0 left-0 w-full h-14 z-9">
+                        <div class="main-container mx-auto flex flex-row justify-between h-full transition-all duration-300" id="top-fixed">
+                            <div class="flex items-center">
+                               <span class="h-full px-5 flex items-center">  </span>
+                            </div>
+                            <div class="flex items-center">
+                                 <span class="h-full px-5 flex items-center">  </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="top-1">
+                        <div class="flex flex-row items-end">
+                            <a href="/"> <img src="https://img.imsun.org/avatar.jpg" /></a>
+                        </div>
+                    </div>
+                    <div class="top-2"> 
+                        <div class="flex flex-row items-end">浪子</div>  
+                    </div>
+                </header>
+                <div class="article-container">
+                    <div id="memos-container"></div>
+                    <button id="load-more" class="load-more-btn">加载更多</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<script>
+window.onload = function() {
+    let offset = 0; // 初始偏移量
+    const limit = 10; // 每次加载的数量
+
+    function formatHTML(toots) {
+        let htmlString = '';      
+        toots.forEach(toot => {
+            const { content, account, created_at, url, media_attachments } = toot;
+            let mediaHTML = ''; // 初始化资源相关HTML为空字符串
+
+            // 处理媒体附件
+            if (media_attachments.length > 0) {
+                media_attachments.forEach(attachment => {
+                    if (attachment.type === 'image') {
+                        mediaHTML += `<a href="${attachment.url}" target="_blank"><img src="${attachment.preview_url}" data-fancybox="img" class="thumbnail-image img"></a>`;
+                    }
+                });
+            }
+
+            // 使用 marked 转换 markdown 内容为 HTML
+            const htmlContent = marked.parse(content);
+
+            // 创建 HTML 字符串
+            htmlString += `
+                <article class="flex flex-row border-b border-b-2 dark:border-gray-800 border-gray-200 pt-5 pl-5 pr-5">
+                    <div class="mr-3">
+                        <div class="w-9 h-9">
+                           <img src="${account.avatar}" class="w-9 h-9 object-cover rounded-lg preview-image" />
+                        </div>
+                    </div>
+                    <div class="w-full border-t-0 border-l-0 border-r-0 border-b-1 dark:border-gray-800 border-gray-100 border-solid pb-1">
+                        <section class="flex flex-row justify-between items-center mb-1">
+                            <span class="text-color-link cursor-default text-[14px]">
+                                <a href="${account.url}" target="_blank" class="cursor-pointer text-color-link no-underline">${account.display_name}</a>
+                            </span>
+                        </section> 
+                        <section class="mb-1 cursor-default break-all line-clamp">
+                            <p>${htmlContent}</p>
+                            <div class="resimg">${mediaHTML}</div>
+                            <div class="text-gray text-xs"><a href="${url}" target="_blank" class="cursor-pointer text-color-link no-underline">${new Date(created_at).toLocaleString()}</a></div>
+                        </section> 
+                    </div>
+                </article>`;
+        });
+        return htmlString;
+    }
+
+    function fetchToots() {
+        return fetch('https://bbapi.ima.cm')
+            .then(response => response.json())
+            .catch(error => {
+                console.error('Error fetching toots:', error);
+                return [];
+            });
+    }
+
+    function fetchAndDisplayToots() {
+        fetchToots().then(data => {
+            const memosContainer = document.getElementById('memos-container');
+            const tootsToShow = data.slice(offset, offset + limit); // 选择要显示的toots
+            memosContainer.innerHTML += formatHTML(tootsToShow);
+            offset += limit; // 更新偏移量
+            // 如果没有更多的toots，隐藏“加载更多”按钮
+            if (offset >= data.length) {
+                document.getElementById('load-more').style.display = 'none';
+            }
+        });
+    }
+
+    // 在页面加载完成后获取并展示 toots
+    fetchAndDisplayToots();
+
+    // 绑定“加载更多”按钮的点击事件
+    document.getElementById('load-more').addEventListener('click', fetchAndDisplayToots);
+};
+
+Fancybox.bind("[data-fancybox]", {
+  // Your custom options
+});
+</script>         
+</body>
+</html>
