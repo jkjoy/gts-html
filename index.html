@@ -50,7 +50,7 @@ window.onload = function() {
     function formatHTML(toots) {
         let htmlString = '';      
         toots.forEach(toot => {
-            const { content, account, created_at, url, media_attachments } = toot;
+            const { content, account, created_at, url, media_attachments, application } = toot;
             let mediaHTML = ''; // 初始化资源相关HTML为空字符串
 
             // 处理媒体附件
@@ -82,7 +82,9 @@ window.onload = function() {
                         <section class="mb-1 cursor-default break-all line-clamp">
                             <p>${htmlContent}</p>
                             <div class="resimg">${mediaHTML}</div>
-                            <div class="text-gray text-xs"><a href="${url}" target="_blank" class="cursor-pointer text-color-link no-underline">${new Date(created_at).toLocaleString()}</a></div>
+                            <div class="text-gray text-xs"><a href="${url}" target="_blank" class="cursor-pointer text-color-link no-underline">${new Date(created_at).toLocaleString()}</a>
+                            ·<a href="${application.website}" target="_blank">${application.name}</a>
+                            </div>
                         </section> 
                     </div>
                 </article>`;
